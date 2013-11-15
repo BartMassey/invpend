@@ -7,10 +7,11 @@
 
 /* Inverted Pendulum GA */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#include <assert.h>
 #define __USE_BSD
 #include <math.h>
 
@@ -23,7 +24,8 @@ extern long srandom(long);
 #define DT 0.1
 #define LENGTH 10.0
 
-double moi = 1.0;
+int report_trace;
+int report_stats;
 
 struct pendulum {
     double x, dx;
@@ -84,7 +86,9 @@ void report(struct pendulum *p, int id, double t, double dx) {
 int gen = 0;
 
 void evaluate() {
-    printf("generation %d\n", gen++);
+    gen++;
+    if (report_trace)
+        printf("gen %d\n", gen);
     for (int i = 0; i < NPOP; i++) {
         struct pendulum p;
         p.x = 0;
@@ -93,7 +97,7 @@ void evaluate() {
         int score = 0;
         double t = 0;
         for (; score < pop[i].nsteps; score++) {
-            if (i == 0)
+            if (report_trace && i == 0)
                 report(&p, pop[i].id, t, pop[i].steps[score]);
             t += DT;
             int ok = step(&p, DT, pop[i].steps[score]);
@@ -102,7 +106,8 @@ void evaluate() {
         }
         pop[i].score = score;
     }
-    printf("\n");
+    if (report_trace)
+        printf("\n");
 }
 
 int compare_score(void *i1, void*i2) {
@@ -112,6 +117,13 @@ int compare_score(void *i1, void*i2) {
 
 void select_and_breed(void) {
     qsort(&pop, NPOP, sizeof(pop[0]), (void *)compare_score);
+    if (report_stats) {
+        double avg_score = 0.0;
+        for (int i = 0; i < NPOP; i++)
+            avg_score += pop[i].score;
+        printf("gen %d max %d avg %g\n",
+               gen, pop[0].score, avg_score / NPOP);
+    }
     int new_pop = NPOP - NPOP / 5;
     for (int i = new_pop; i < NPOP; i++) {
         /* crossover */
@@ -139,7 +151,16 @@ void select_and_breed(void) {
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
+    while (argc > 1) {
+        if (!strcmp(argv[1], "-t"))
+            report_trace = 1;
+        else if (!strcmp(argv[1], "-s"))
+            report_stats = 1;
+        else
+            assert(0);
+        argv++, --argc;
+    }
     srandom(getpid());
     init_pop();
     while(1) {
