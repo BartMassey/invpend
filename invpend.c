@@ -18,6 +18,7 @@ extern long random(void);
 #define POSN_LIMIT 10.0
 #define NPOP 100
 #define MUTATION_RATE 20
+#define DT 1.0
 
 double moi = 1.0;
 
@@ -59,20 +60,33 @@ void init_pop(void) {
         make_instance(&pop[i]);
 }
 
+void report(struct pendulum *p, double t, double dx) {
+    printf("%4.1f: %4.2f(%.2f) %3.1f\n",
+           t, p->x, dx, 360 * p->theta / 2 / PI);
+}
+
+int gen = 0;
+
 void evaluate() {
+    printf("generation %d\n", gen++);
     for (int i = 0; i < NPOP; i++) {
         struct pendulum p;
         p.x = 0;
         p.theta = (random() % 5 - 3) / PI / 10;
         p.dtheta = 0;
         int score = 0;
+        double t = 0;
         for (; score < pop[i].nsteps; score++) {
-            int ok = step(&p, 1.0, pop[i].steps[score]);
+            if (i == 0)
+                report(&p, t, pop[i].steps[score]);
+            t += DT;
+            int ok = step(&p, DT, pop[i].steps[score]);
             if (!ok)
                 break;
         }
         pop[i].score = score;
     }
+    printf("\n");
 }
 
 int compare_score(void *i1, void*i2) {
