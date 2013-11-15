@@ -9,11 +9,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <assert.h>
 #define __USE_BSD
 #include <math.h>
 
 extern long random(void);
+extern long srandom(long);
 
 #define POSN_LIMIT 10.0
 #define NPOP 100
@@ -134,6 +136,7 @@ void select_and_breed(void) {
 }
 
 int main() {
+    srandom(getpid());
     init_pop();
     while(1) {
         evaluate();
