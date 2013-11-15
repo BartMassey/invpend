@@ -183,5 +183,9 @@ int main(int argc, char **argv) {
         if (ngen > 0)
             --ngen;
     }
+    /* free memory for valgrind */
+    for (int i = 0; i < npop; i++)
+        free(pop[i].steps);
+    free(pop);
     return 0;
 }
