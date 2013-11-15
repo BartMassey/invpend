@@ -18,7 +18,7 @@ extern long random(void);
 extern long srandom(long);
 
 #define POSN_LIMIT 10.0
-#define NPOP 100
+#define NPOP 1000
 #define MUTATION_RATE 20
 #define DT 0.1
 #define LENGTH 10.0
