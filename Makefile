@@ -5,8 +5,8 @@
 
 # Makefile for invpend
 
-CC = gcc -std=c99
-CFLAGS = -g -Wall
+CC = gcc -std=c99 -Wall
+CFLAGS = -O4
 LIBS = -lm
 
 invpend: invpend.c
