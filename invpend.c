@@ -94,6 +94,7 @@ void evaluate() {
     for (int i = 0; i < npop; i++) {
         struct pendulum p;
         p.x = 0;
+        p.dx = 0;
         p.theta = 0; /*(random() % 5 - 2) / M_PI / 10;*/
         p.dtheta = 0;
         int score = 0;
