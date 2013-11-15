@@ -19,13 +19,13 @@ extern long random(void);
 extern long srandom(long);
 
 #define POSN_LIMIT 10.0
-#define NPOP 1000
 #define MUTATION_RATE 20
 #define DT 0.1
 #define LENGTH 10.0
 
 int report_trace;
 int report_stats;
+int npop = 1000;
 
 struct pendulum {
     double x, dx;
@@ -57,7 +57,7 @@ struct genome {
 
 int gid = 1;
 
-struct genome pop[NPOP];
+struct genome *pop;
 
 double rand_step(void) {
     return (random() % 201 - 100) / 100.0;
@@ -74,7 +74,9 @@ void make_instance(struct genome *inst) {
 }
 
 void init_pop(void) {
-    for (int i = 0; i < NPOP; i++)
+    pop = malloc(npop * sizeof(pop[0]));
+    assert(pop);
+    for (int i = 0; i < npop; i++)
         make_instance(&pop[i]);
 }
 
@@ -89,7 +91,7 @@ void evaluate() {
     gen++;
     if (report_trace)
         printf("gen %d\n", gen);
-    for (int i = 0; i < NPOP; i++) {
+    for (int i = 0; i < npop; i++) {
         struct pendulum p;
         p.x = 0;
         p.theta = 0; /*(random() % 5 - 2) / M_PI / 10;*/
@@ -119,13 +121,13 @@ void select_and_breed(void) {
     qsort(&pop, NPOP, sizeof(pop[0]), (void *)compare_score);
     if (report_stats) {
         double avg_score = 0.0;
-        for (int i = 0; i < NPOP; i++)
+        for (int i = 0; i < npop; i++)
             avg_score += pop[i].score;
         printf("gen %d max %d avg %g\n",
-               gen, pop[0].score, avg_score / NPOP);
+               gen, pop[0].score, avg_score / npop);
     }
-    int new_pop = NPOP - NPOP / 5;
-    for (int i = new_pop; i < NPOP; i++) {
+    int new_pop = npop - npop / 5;
+    for (int i = new_pop; i < npop; i++) {
         /* crossover */
         int j1 = random() % new_pop;
         int j2 = random() % new_pop;
@@ -153,9 +155,9 @@ void select_and_breed(void) {
 
 int main(int argc, char **argv) {
     while (argc > 1) {
-        if (!strcmp(argv[1], "-t"))
+        if (!strcmp(argv[1], "-t")) {
             report_trace = 1;
-        else if (!strcmp(argv[1], "-s"))
+        } else if (!strcmp(argv[1], "-s")) {
             report_stats = 1;
         else
             assert(0);
