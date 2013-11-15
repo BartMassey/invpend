@@ -57,6 +57,10 @@ int gid = 1;
 
 struct genome pop[NPOP];
 
+double rand_step(void) {
+    return (random() % 201 - 100) / 100.0;
+}
+
 void make_instance(struct genome *inst) {
     inst->id = gid++;
     int n = random() % 98 + 2;
@@ -64,7 +68,7 @@ void make_instance(struct genome *inst) {
     inst->steps = malloc(n * sizeof(inst->steps[0]));
     assert(inst->steps);
     for (int i = 0; i < n; i++)
-        inst->steps[i] = (random() % 101 - 100) / 100.0;
+        inst->steps[i] = rand_step();
 }
 
 void init_pop(void) {
@@ -128,7 +132,7 @@ void select_and_breed(void) {
         /* mutation */
         if (random() % MUTATION_RATE == 0)
             inst.steps[random() % inst.nsteps] =
-                (random() % 101 - 100) / 100.0;
+                rand_step();
         /* insert */
         free(pop[i].steps);
         pop[i] = inst;
