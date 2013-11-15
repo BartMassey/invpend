@@ -39,14 +39,18 @@ int step(struct pendulum *p, double dt, double dx) {
 }
 
 struct genome {
+    int id;
     int score;
     int nsteps;
     double *steps;
 };
 
+int gid = 1;
+
 struct genome pop[NPOP];
 
 void make_instance(struct genome *inst) {
+    inst->id = gid++;
     int n = random() % 98 + 2;
     inst->nsteps = n;
     inst->steps = malloc(n * sizeof(inst->steps[0]));
@@ -60,9 +64,9 @@ void init_pop(void) {
         make_instance(&pop[i]);
 }
 
-void report(struct pendulum *p, double t, double dx) {
-    printf("%4.1f: %4.2f(%.2f) %3.1f\n",
-           t, p->x, dx, 360 * p->theta / 2 / PI);
+void report(struct pendulum *p, int id, double t, double dx) {
+    printf("%d %4.1f: %4.2f(%.2f) %3.1f\n",
+           id, t, p->x, dx, 360 * p->theta / 2 / PI);
 }
 
 int gen = 0;
@@ -78,7 +82,7 @@ void evaluate() {
         double t = 0;
         for (; score < pop[i].nsteps; score++) {
             if (i == 0)
-                report(&p, t, pop[i].steps[score]);
+                report(&p, pop[i].id, t, pop[i].steps[score]);
             t += DT;
             int ok = step(&p, DT, pop[i].steps[score]);
             if (!ok)
@@ -104,6 +108,7 @@ void select_and_breed(void) {
         int n1 = random() % pop[j1].nsteps;
         int n2 = random() % pop[j2].nsteps;
         struct genome inst;
+        inst.id = gid++;
         inst.nsteps = n1 + pop[j2].nsteps - n2;
         inst.steps = malloc(inst.nsteps * sizeof(inst.steps[0]));
         assert(inst.steps);
