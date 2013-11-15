@@ -113,13 +113,13 @@ void evaluate() {
         printf("\n");
 }
 
-int compare_score(void *i1, void*i2) {
+int compare_score(const void *i1, const void *i2) {
     return ((struct genome *)i2)->score -
         ((struct genome *)i1)->score;
 }
 
 void select_and_breed(void) {
-    qsort(&pop, NPOP, sizeof(pop[0]), (void *)compare_score);
+    qsort(pop, npop, sizeof(pop[0]), compare_score);
     if (report_stats) {
         double avg_score = 0.0;
         for (int i = 0; i < npop; i++)
