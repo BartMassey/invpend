@@ -155,20 +155,33 @@ void select_and_breed(void) {
 }
 
 int main(int argc, char **argv) {
+    int ngen = -1;
     while (argc > 1) {
         if (!strcmp(argv[1], "-t")) {
             report_trace = 1;
         } else if (!strcmp(argv[1], "-s")) {
             report_stats = 1;
-        else
+        } else if (!strcmp(argv[1], "-p")) {
+            assert(argc >= 3);
+            npop = atoi(argv[2]);
+            assert(npop > 0);
+            argv++, --argc;
+        } else if (!strcmp(argv[1], "-g")) {
+            assert(argc >= 3);
+            ngen = atoi(argv[2]);
+            assert(ngen > 0);
+            argv++, --argc;
+        } else
             assert(0);
         argv++, --argc;
     }
     srandom(getpid());
     init_pop();
-    while(1) {
+    while (ngen > 0 || ngen == -1) {
         evaluate();
         select_and_breed();
+        if (ngen > 0)
+            --ngen;
     }
     return 0;
 }
