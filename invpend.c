@@ -10,30 +10,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#define __USE_BSD
 #include <math.h>
 
 extern long random(void);
 
-#define PI 3.14
 #define POSN_LIMIT 10.0
 #define NPOP 100
 #define MUTATION_RATE 20
-#define DT 1.0
+#define DT 0.1
+#define LENGTH 10.0
 
 double moi = 1.0;
 
 struct pendulum {
-    double x;
+    double x, dx;
     double theta, dtheta;
 };
 
+/* http://en.wikipedia.org/wiki/Inverted_pendulum */
 int step(struct pendulum *p, double dt, double dx) {
     p->x += dx;
     if (p->x <= -POSN_LIMIT || p->x >= POSN_LIMIT)
         return 0;
-    p->dtheta += dx * sin(p->theta) + 10.0 * (p->theta);
-    p->theta += p->dtheta;
-    if (p->theta <= -PI/2 || p->theta >= PI/2)
+    double ddx = (dx / dt - p->dx) / dt;
+    p->dx = dx / dt;
+    double ddtheta =
+        (-ddx * cos(p->theta) + 10 * sin(p->theta)) / LENGTH;
+    p->dtheta += ddtheta * dt;
+    p->theta += p->dtheta * dt;
+    if (p->theta <= -M_PI/2 || p->theta >= M_PI/2)
         return 0;
     return 1;
 }
@@ -65,8 +71,8 @@ void init_pop(void) {
 }
 
 void report(struct pendulum *p, int id, double t, double dx) {
-    printf("%d %4.1f: %4.2f(%.2f) %3.1f\n",
-           id, t, p->x, dx, 360 * p->theta / 2 / PI);
+    printf("%d %4.2f: %4.2f(%.2f) %3.1f\n",
+           id, t, p->x, dx, 360 * p->theta / 2 / M_PI);
 }
 
 int gen = 0;
@@ -76,7 +82,7 @@ void evaluate() {
     for (int i = 0; i < NPOP; i++) {
         struct pendulum p;
         p.x = 0;
-        p.theta = (random() % 5 - 3) / PI / 10;
+        p.theta = 0; /*(random() % 5 - 2) / M_PI / 10;*/
         p.dtheta = 0;
         int score = 0;
         double t = 0;
