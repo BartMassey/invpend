@@ -28,14 +28,14 @@
 #define WHEEL_RADIUS 6.0
 #define MASS_RADIUS 8.0
 
-double rod_length, track_width;
+static double rod_length, track_width;
 
-xcb_connection_t *c;
-xcb_window_t window;
-int window_active = 0;
+static xcb_connection_t *c;
+static xcb_window_t window;
+static int window_active = 0;
 
 /* cart drawing surface */
-cairo_t *cas;
+static cairo_t *cas;
 
 /*
  * Thanks to Vincent Torri for his XCB tutorial on which
@@ -46,7 +46,7 @@ cairo_t *cas;
  * I followed.
  */
 
-void check_request(char *desc, xcb_void_cookie_t r) {
+static void check_request(char *desc, xcb_void_cookie_t r) {
     xcb_generic_error_t *e = xcb_request_check(c, r);
     if (!e)
         return;
@@ -57,7 +57,7 @@ void check_request(char *desc, xcb_void_cookie_t r) {
     exit(1);
 }
 
-void draw_background(cairo_t *cs) {
+static void draw_background(cairo_t *cs) {
     /* draw the light blue background */
     cairo_rectangle(cs, -1.0, -1.0, WIDTH + 1.0, HEIGHT + 1.0);
     cairo_set_source_rgb(cs, 0.9, 0.9, 1.0);
@@ -70,10 +70,14 @@ void draw_background(cairo_t *cs) {
     cairo_stroke(cs);
 }
 
-void init_window(double length, double width) {
-    assert(!window_active);
-    track_width = width;
+static void save_dims(double length, double width) {
     rod_length = length;
+    track_width = width;
+}
+
+void init_window(double rod_length, double track_width) {
+    assert(!window_active);
+    save_dims(rod_length, track_width);
 
     /* set up the X connection */
     int nscreen = 0;
@@ -133,8 +137,6 @@ void init_window(double length, double width) {
 }
 
 void draw_cart(double x, double theta) {
-    cairo_set_source_rgb(cas, 0.3, 0.9, 0.3);
-
     /* position the cart */
     double cart_x =
         (x / track_width) * TRACK_WIDTH_PIXELS +
@@ -143,6 +145,7 @@ void draw_cart(double x, double theta) {
         TRACK_HEIGHT - WHEEL_RADIUS;
 
     /* draw the cart wheels */
+    cairo_set_source_rgb(cas, 0.0, 0.0, 0.0);
     cairo_arc(cas, cart_x + CART_WIDTH / 4.0, cart_y,
               WHEEL_RADIUS, 0, 2 * M_PI);
     cairo_arc(cas, cart_x + 3.0 * CART_WIDTH / 4.0, cart_y,
@@ -163,10 +166,12 @@ void draw_cart(double x, double theta) {
     cairo_stroke(cas);
 
     /* draw the cart mass */
+    cairo_set_source_rgb(cas, 0.7, 0.4, 0.2);
     cairo_arc(cas, rod_top_x, rod_top_y, MASS_RADIUS, 0, 2 * M_PI);
     cairo_fill(cas);
 
     /* draw the cart body */
+    cairo_set_source_rgb(cas, 0.3, 0.9, 0.3);
     cairo_rectangle(cas, cart_x, cart_y - CART_HEIGHT,
                     CART_WIDTH, CART_HEIGHT);
     cairo_fill(cas);
@@ -181,12 +186,4 @@ void destroy_window(void) {
         return;
     cairo_destroy(cas);
     (void) xcb_disconnect(c);
-}
-
-int main() {
-    init_window(10.0, 20.0);
-    draw_cart(10.0, M_PI / 4.0);
-    sleep(5);
-    destroy_window();
-    return 0;
 }
