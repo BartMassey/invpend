@@ -132,6 +132,9 @@ void init_window(double length, double width) {
 }
 
 void draw_cart(double x, double theta) {
+    cairo_set_source_rgb(cas, 0.3, 0.9, 0.3);
+
+    /* position the cart */
     double cart_x =
         (x / track_width) * TRACK_WIDTH_PIXELS +
         TRACK_OFFSET - CART_WIDTH / 2.0;
@@ -147,10 +150,22 @@ void draw_cart(double x, double theta) {
     /* draw the cart body */
     cairo_rectangle(cas, cart_x, cart_y - CART_HEIGHT,
                     CART_WIDTH, CART_HEIGHT);
+    cairo_fill(cas);
+
+    /* position the cart rod */
+    double rod_bottom_x = cart_x + CART_WIDTH / 2.0;
+    double rod_bottom_y = cart_y - CART_HEIGHT / 2.0;
+    double rod_top_x = rod_bottom_x +
+        rod_length * sin(theta) * TRACK_WIDTH_PIXELS / track_width;
+    double rod_top_y = rod_bottom_y -
+        rod_length * cos(theta) * TRACK_WIDTH_PIXELS / track_width;
+
+    /* draw the cart rod */
+    cairo_move_to(cas, rod_bottom_x, rod_bottom_y);
+    cairo_line_to(cas, rod_top_x, rod_top_y);
+    cairo_stroke(cas);
 
     /* push the cart drawing out */
-    cairo_set_source_rgb(cas, 0.3, 0.9, 0.3);
-    cairo_fill(cas);
     assert(cairo_status(cas) == 0);
     (void) xcb_aux_sync(c);
 }
@@ -163,8 +178,8 @@ void destroy_window(void) {
 }
 
 int main() {
-    init_window(20.0, 10.0);
-    draw_cart(5.0, 0.0);
+    init_window(10.0, 20.0);
+    draw_cart(10.0, M_PI / 4.0);
     sleep(5);
     destroy_window();
     return 0;
