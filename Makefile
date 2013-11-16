@@ -9,6 +9,11 @@ CC = gcc -std=c99 -Wall
 CFLAGS = -O4
 LIBS = -lcairo -lxcb-util -lxcb -lm
 
-invpend: invpend.o graphics.o
-	$(CC) $(CFLAGS) -o invpend invpend.o graphics.o $(LIBS)
+invpend: invpend.o
+	$(CC) $(CFLAGS) -o invpend invpend.o $(LIBS)
 
+xinvpend: xinvpend.o graphics.o
+	$(CC) $(CFLAGS) -o xinvpend xinvpend.o graphics.o $(LIBS)
+
+xinvpend.o: invpend.c
+	$(CC) $(CFLAGS) -DX -o xinvpend.o -c invpend.c

@@ -11,9 +11,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #define __USE_BSD
+#include <unistd.h>
 #include <math.h>
+
+#ifdef X
+#include "graphics.h"
+#endif
 
 extern long random(void);
 extern long srandom(long);
@@ -23,6 +27,9 @@ extern long srandom(long);
 #define DT 0.1
 #define ROD_LENGTH 10.0
 
+#ifdef X
+int report_x = 0;
+#endif
 int report_trace;
 int report_stats;
 int npop = 1000;
@@ -102,6 +109,12 @@ void evaluate() {
         for (; score < pop[i].nsteps; score++) {
             if (report_trace && i == 0)
                 report(&p, pop[i].id, t, pop[i].steps[score]);
+#ifdef X
+            if (report_x > 0 && i == 0 && gen % report_x == 0) {
+                draw_cart(p.x + POSN_LIMIT, p.theta);
+                usleep((__useconds_t)floor(1000.0 * DT));
+            }
+#endif
             t += DT;
             int ok = step(&p, DT, pop[i].steps[score]);
             if (!ok)
@@ -171,12 +184,23 @@ int main(int argc, char **argv) {
             ngen = atoi(argv[2]);
             assert(ngen > 0);
             argv++, --argc;
+#ifdef X
+        } else if (!strcmp(argv[1], "-x")) {
+            assert(argc >= 3);
+            report_x = atoi(argv[2]);
+            assert(report_x > 0);
+            argv++, --argc;
+#endif
         } else
             assert(0);
         argv++, --argc;
     }
     srandom(getpid());
     init_pop();
+#ifdef X
+    if (report_x > 0)
+        init_window(ROD_LENGTH, 2.0 * POSN_LIMIT);
+#endif
     while (ngen > 0 || ngen == -1) {
         evaluate();
         select_and_breed();
@@ -184,6 +208,10 @@ int main(int argc, char **argv) {
             --ngen;
     }
     /* free memory for valgrind */
+#ifdef X
+    if (report_x > 0)
+        destroy_window();
+#endif
     for (int i = 0; i < npop; i++)
         free(pop[i].steps);
     free(pop);
