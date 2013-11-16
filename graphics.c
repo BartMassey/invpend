@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define __USE_BSD
+#include <math.h>
 
 #include <cairo/cairo.h>
 #include <cairo/cairo-xcb.h>
@@ -20,12 +22,12 @@
 #define HEIGHT 300
 #define TRACK_HEIGHT (HEIGHT - 50.0)
 #define TRACK_OFFSET 10.0
-#define TRACK_WIDTH (WIDTH - 2 * TRACK_OFFSET)
+#define TRACK_WIDTH_PIXELS (WIDTH - 2 * TRACK_OFFSET)
 #define CART_HEIGHT 20.0
 #define CART_WIDTH 20.0
-#define MASS_RADIUS 20.0
+#define WHEEL_RADIUS 3.0
 
-double rod_length;
+double rod_length, track_width;
 
 xcb_connection_t *c;
 xcb_window_t window;
@@ -69,7 +71,8 @@ void draw_background(cairo_t *cs) {
 
 void init_window(double length, double width) {
     assert(!window_active);
-    rod_length = length * width / TRACK_WIDTH ;
+    track_width = TRACK_WIDTH_PIXELS / width;
+    rod_length = length / track_width;
 
     /* set up the X connection */
     int nscreen = 0;
@@ -120,12 +123,33 @@ void init_window(double length, double width) {
 
     /* set up the cart surface for later use */
     surface = 
-        cairo_xcb_surface_create(c, background, visualtype, WIDTH, HEIGHT);
+        cairo_xcb_surface_create(c, window, visualtype, WIDTH, HEIGHT);
     assert(surface);
     cas = cairo_create(surface);
     assert(cas);
 
     window_active = 1;
+}
+
+void draw_wheel(double x) {
+    double y = TRACK_HEIGHT - WHEEL_RADIUS;
+    fprintf(stderr, "%g %g\n", x, y);
+    cairo_arc(cas, x, y, WHEEL_RADIUS, 0, 2 * M_PI);
+}
+
+void draw_cart(double x, double theta) {
+    /* draw the cart wheels */
+    double cart_x =
+        (x / track_width) * TRACK_WIDTH_PIXELS +
+        TRACK_OFFSET - CART_WIDTH / 2.0;
+    draw_wheel(cart_x + CART_WIDTH / 3.0);
+    draw_wheel(cart_x + 2 * CART_WIDTH / 3.0);
+
+    /* push the cart drawing out */
+    cairo_set_source_rgb(cas, 0.3, 0.9, 0.3);
+    cairo_fill(cas);
+    assert(cairo_status(cas) == 0);
+    (void) xcb_aux_sync(c);
 }
 
 void destroy_window(void) {
@@ -137,6 +161,7 @@ void destroy_window(void) {
 
 int main() {
     init_window(20.0, 10.0);
+    draw_cart(5.0, 0.0);
     sleep(5);
     destroy_window();
     return 0;
