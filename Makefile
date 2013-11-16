@@ -7,7 +7,7 @@
 
 CC = gcc -std=c99 -Wall
 CFLAGS = -O4
-LIBS = -lm
+LIBS = -lxcb-util -lxcb -lm
 
-invpend: invpend.c
-	$(CC) $(CFLAGS) -o invpend invpend.c $(LIBS)
+invpend: invpend.o graphics.o
+	$(CC) $(CFLAGS) -o invpend invpend.o graphics.o $(LIBS)
