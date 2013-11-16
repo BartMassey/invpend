@@ -137,6 +137,11 @@ void init_window(double rod_length, double track_width) {
 }
 
 void draw_cart(double x, double theta) {
+    /* clear out previous cart drawing */
+    xcb_void_cookie_t result =
+        xcb_clear_area_checked(c, 0, window, 0, 0, WIDTH, HEIGHT);
+    check_request("clear_area", result);
+
     /* position the cart */
     double cart_x =
         (x / track_width) * TRACK_WIDTH_PIXELS +
