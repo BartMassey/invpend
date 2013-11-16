@@ -21,7 +21,7 @@ extern long srandom(long);
 #define POSN_LIMIT 10.0
 #define MUTATION_RATE 20
 #define DT 0.1
-#define LENGTH 10.0
+#define ROD_LENGTH 10.0
 
 int report_trace;
 int report_stats;
@@ -40,7 +40,7 @@ int step(struct pendulum *p, double dt, double dx) {
     double ddx = (dx / dt - p->dx) / dt;
     p->dx = dx / dt;
     double ddtheta =
-        (-ddx * cos(p->theta) + 10 * sin(p->theta)) / LENGTH;
+        (-ddx * cos(p->theta) + 10 * sin(p->theta)) / ROD_LENGTH;
     p->dtheta += ddtheta * dt;
     p->theta += p->dtheta * dt;
     if (p->theta <= -M_PI/2 || p->theta >= M_PI/2)

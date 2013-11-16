@@ -18,10 +18,21 @@
 
 #define WIDTH 400
 #define HEIGHT 300
+#define TRACK_HEIGHT (HEIGHT - 50.0)
+#define TRACK_OFFSET 10.0
+#define TRACK_WIDTH (WIDTH - 2 * TRACK_OFFSET)
+#define CART_HEIGHT 20.0
+#define CART_WIDTH 20.0
+#define MASS_RADIUS 20.0
+
+double rod_length;
 
 xcb_connection_t *c;
 xcb_window_t window;
 int window_active = 0;
+
+/* cart drawing surface */
+cairo_t *cas;
 
 /*
  * Thanks to Vincent Torri for his XCB tutorial on which
@@ -51,13 +62,14 @@ void draw_background(cairo_t *cs) {
 
     /* draw the red track */
     cairo_set_source_rgb(cs, 0.9, 0.3, 0.3);
-    cairo_move_to(cs, 10.0, HEIGHT - 50.0);
-    cairo_line_to(cs, WIDTH - 10.0, HEIGHT - 50.0);
+    cairo_move_to(cs, 10.0, TRACK_HEIGHT);
+    cairo_line_to(cs, WIDTH - 10.0, TRACK_HEIGHT);
     cairo_stroke(cs);
 }
 
-void init_window(void) {
+void init_window(double length, double width) {
     assert(!window_active);
+    rod_length = length * width / TRACK_WIDTH ;
 
     /* set up the X connection */
     int nscreen = 0;
@@ -68,21 +80,19 @@ void init_window(void) {
 
     /* set up the display window and background pixmap */
     window = xcb_generate_id(c);
-    xcb_params_cw_t cw_params;
-    cw_params.event_mask = XCB_EVENT_MASK_EXPOSURE;
     xcb_void_cookie_t result =
         xcb_aux_create_window_checked(c, XCB_COPY_FROM_PARENT,
                                       window, screen->root,
                                       0, 0, WIDTH, HEIGHT, 0,
                                       XCB_WINDOW_CLASS_INPUT_OUTPUT,
                                       screen->root_visual,
-                                      XCB_CW_EVENT_MASK,
-                                      &cw_params);
+                                      0, 0);
     check_request("create_window", result);
     xcb_pixmap_t background = xcb_generate_id(c);
     result = xcb_create_pixmap_checked(c, 24, background, window,
                                        WIDTH, HEIGHT);
     check_request("create_pixmap", result);
+    xcb_params_cw_t cw_params;
     cw_params.back_pixmap = background;
     result = xcb_aux_change_window_attributes_checked(c, window,
                                                       XCB_CW_BACK_PIXMAP,
@@ -108,17 +118,25 @@ void init_window(void) {
     check_request("map_window", result);
     (void) xcb_aux_sync(c);
 
+    /* set up the cart surface for later use */
+    surface = 
+        cairo_xcb_surface_create(c, background, visualtype, WIDTH, HEIGHT);
+    assert(surface);
+    cas = cairo_create(surface);
+    assert(cas);
+
     window_active = 1;
 }
 
 void destroy_window(void) {
     if (!window_active)
         return;
+    cairo_destroy(cas);
     (void) xcb_disconnect(c);
 }
 
 int main() {
-    init_window();
+    init_window(20.0, 10.0);
     sleep(5);
     destroy_window();
     return 0;
