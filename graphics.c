@@ -136,11 +136,16 @@ void init_window(double rod_length, double track_width) {
     window_active = 1;
 }
 
-void draw_cart(double x, double theta) {
+void clear_cart(void) {
     /* clear out previous cart drawing */
     xcb_void_cookie_t result =
         xcb_clear_area_checked(c, 0, window, 0, 0, WIDTH, HEIGHT);
     check_request("clear_area", result);
+    (void) xcb_aux_sync(c);
+}
+
+void draw_cart(double x, double theta) {
+    clear_cart();
 
     /* position the cart */
     double cart_x =
@@ -160,10 +165,17 @@ void draw_cart(double x, double theta) {
     /* position the cart rod */
     double rod_bottom_x = cart_x + CART_WIDTH / 2.0;
     double rod_bottom_y = cart_y - CART_HEIGHT / 2.0;
-    double rod_top_x = rod_bottom_x +
-        rod_length * sin(theta) * TRACK_WIDTH_PIXELS / track_width;
-    double rod_top_y = rod_bottom_y -
-        rod_length * cos(theta) * TRACK_WIDTH_PIXELS / track_width;
+    double adj_length = rod_length * TRACK_WIDTH_PIXELS / track_width;
+    double rod_top_x = rod_bottom_x + adj_length * sin(theta);
+    double rod_top_y = rod_bottom_y - adj_length * cos(theta);
+    if (rod_top_y > TRACK_HEIGHT - MASS_RADIUS - CART_HEIGHT / 2.0) {
+        rod_top_y = TRACK_HEIGHT - MASS_RADIUS;
+        double dy = rod_top_y - rod_bottom_y;
+        double dx = sqrt(adj_length * adj_length - dy * dy);
+        if (rod_top_x < rod_bottom_x)
+            dx = -dx;
+        rod_top_x = cart_x + dx;
+    }
 
     /* draw the cart rod */
     cairo_move_to(cas, rod_bottom_x, rod_bottom_y);

@@ -106,21 +106,32 @@ void evaluate() {
         p.dtheta = 0;
         int score = 0;
         double t = 0;
+#ifdef X
+        if (i == 0 && report_x > 0 && gen % report_x == 0) {
+            clear_cart();
+            usleep(500000);
+            draw_cart(POSN_LIMIT, 0.0);
+        }
+#endif
         for (; score < pop[i].nsteps; score++) {
+            int ok = step(&p, DT, pop[i].steps[score]);
             if (report_trace && i == 0)
                 report(&p, pop[i].id, t, pop[i].steps[score]);
 #ifdef X
-            if (report_x > 0 && i == 0 && gen % report_x == 0) {
+            if (i == 0 && report_x > 0 && gen % report_x == 0) {
+                usleep(1000000.0 * DT);
                 draw_cart(p.x + POSN_LIMIT, p.theta);
-                usleep((__useconds_t)floor(1000.0 * DT));
             }
 #endif
             t += DT;
-            int ok = step(&p, DT, pop[i].steps[score]);
             if (!ok)
                 break;
         }
         pop[i].score = score;
+#ifdef X
+        if (i == 0 && report_x > 0 && gen % report_x == 0)
+            usleep(500000);
+#endif
     }
     if (report_trace)
         printf("\n");

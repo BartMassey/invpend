@@ -6,5 +6,6 @@
 
 /* Cart-Pole graphics for Inverted Pendulum */
 extern void init_window(double rod_length, double track_width);
+extern void clear_cart(void);
 extern void draw_cart(double x, double theta);
 extern void destroy_window(void);
