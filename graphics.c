@@ -26,6 +26,7 @@
 #define CART_HEIGHT 10.0
 #define CART_WIDTH 40.0
 #define WHEEL_RADIUS 6.0
+#define MASS_RADIUS 8.0
 
 double rod_length, track_width;
 
@@ -146,10 +147,6 @@ void draw_cart(double x, double theta) {
               WHEEL_RADIUS, 0, 2 * M_PI);
     cairo_arc(cas, cart_x + 3.0 * CART_WIDTH / 4.0, cart_y,
               WHEEL_RADIUS, 0, 2 * M_PI);
-
-    /* draw the cart body */
-    cairo_rectangle(cas, cart_x, cart_y - CART_HEIGHT,
-                    CART_WIDTH, CART_HEIGHT);
     cairo_fill(cas);
 
     /* position the cart rod */
@@ -164,6 +161,15 @@ void draw_cart(double x, double theta) {
     cairo_move_to(cas, rod_bottom_x, rod_bottom_y);
     cairo_line_to(cas, rod_top_x, rod_top_y);
     cairo_stroke(cas);
+
+    /* draw the cart mass */
+    cairo_arc(cas, rod_top_x, rod_top_y, MASS_RADIUS, 0, 2 * M_PI);
+    cairo_fill(cas);
+
+    /* draw the cart body */
+    cairo_rectangle(cas, cart_x, cart_y - CART_HEIGHT,
+                    CART_WIDTH, CART_HEIGHT);
+    cairo_fill(cas);
 
     /* push the cart drawing out */
     assert(cairo_status(cas) == 0);
