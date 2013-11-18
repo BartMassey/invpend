@@ -35,6 +35,7 @@ static xcb_window_t window;
 static int window_active = 0;
 
 /* cart drawing surface */
+static cairo_t *cws;
 static cairo_t *cas;
 
 /*
@@ -96,56 +97,40 @@ void init_window(double rod_length, double track_width) {
                                       screen->root_visual,
                                       0, 0);
     check_request("create_window", result);
-    xcb_pixmap_t background = xcb_generate_id(c);
-    result = xcb_create_pixmap_checked(c, 24, background, window,
-                                       WIDTH, HEIGHT);
-    check_request("create_pixmap", result);
-    xcb_params_cw_t cw_params;
-    cw_params.back_pixmap = background;
-    result = xcb_aux_change_window_attributes_checked(c, window,
-                                                      XCB_CW_BACK_PIXMAP,
-                                                      &cw_params);
-    check_request("change_window_attributes", result);
 
-    /* create and paint the background surface */
-    xcb_visualtype_t *visualtype =
-        xcb_aux_find_visual_by_id(screen, screen->root_visual);
-    assert(visualtype);
-    cairo_surface_t *surface =
-        cairo_xcb_surface_create(c, background, visualtype, WIDTH, HEIGHT);
-    assert(surface);
-    cairo_t *cs = cairo_create(surface);
-    assert(cs);
-    draw_background(cs);
-    cairo_destroy(cs);
+    xcb_visualtype_t *visualtype = xcb_aux_find_visual_by_id(screen, screen->root_visual);
+
+    cairo_surface_t *window_surface = cairo_xcb_surface_create(c, window, visualtype, WIDTH, HEIGHT);
+
+    cairo_surface_t *pixmap_surface = cairo_surface_create_similar(window_surface, CAIRO_CONTENT_COLOR, WIDTH, HEIGHT);
 
     /* get the window onscreen and rendered */
-    result = xcb_clear_area_checked(c, 0, window, 0, 0, WIDTH, HEIGHT);
-    check_request("clear_area", result);
     result = xcb_map_window_checked(c, window);
     check_request("map_window", result);
     (void) xcb_aux_sync(c);
 
     /* set up the cart surface for later use */
-    surface = 
-        cairo_xcb_surface_create(c, window, visualtype, WIDTH, HEIGHT);
-    assert(surface);
-    cas = cairo_create(surface);
+
+    cws = cairo_create(window_surface);
+    assert(cws);
+
+    cas = cairo_create(pixmap_surface);
     assert(cas);
+
+    cairo_set_source_surface(cws, pixmap_surface, 0, 0);
 
     window_active = 1;
 }
 
 void clear_cart(void) {
-    /* clear out previous cart drawing */
-    xcb_void_cookie_t result =
-        xcb_clear_area_checked(c, 0, window, 0, 0, WIDTH, HEIGHT);
-    check_request("clear_area", result);
-    (void) xcb_aux_sync(c);
+	cairo_set_source_rgb(cas, 1, 1, 1);
+	cairo_paint(cas);
 }
 
 void draw_cart(double x, double theta) {
     clear_cart();
+
+    draw_background(cas);
 
     /* position the cart */
     double cart_x =
@@ -193,9 +178,11 @@ void draw_cart(double x, double theta) {
                     CART_WIDTH, CART_HEIGHT);
     cairo_fill(cas);
 
+    cairo_paint(cws);
+    
     /* push the cart drawing out */
     assert(cairo_status(cas) == 0);
-    (void) xcb_aux_sync(c);
+    (void) xcb_flush(c);
 }
 
 void destroy_window(void) {
