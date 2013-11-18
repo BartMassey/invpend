@@ -25,7 +25,7 @@ extern long srandom(long);
 #define POSN_LIMIT 10.0
 #define MUTATION_RATE 20
 #define DT 0.1
-#define ROD_LENGTH 10.0
+#define ROD_LENGTH 2.0
 
 #ifdef X
 int report_x = 0;

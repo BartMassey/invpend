@@ -17,6 +17,7 @@
 #include <cairo/cairo-xcb.h>
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
+#include <xcb/present.h>
 
 #define WIDTH 400
 #define HEIGHT 300
@@ -37,6 +38,7 @@ static int window_active = 0;
 /* cart drawing surface */
 static cairo_t *cws;
 static cairo_t *cas;
+static xcb_pixmap_t pixmap;
 
 /*
  * Thanks to Vincent Torri for his XCB tutorial on which
@@ -102,7 +104,15 @@ void init_window(double rod_length, double track_width) {
 
     cairo_surface_t *window_surface = cairo_xcb_surface_create(c, window, visualtype, WIDTH, HEIGHT);
 
-    cairo_surface_t *pixmap_surface = cairo_surface_create_similar(window_surface, CAIRO_CONTENT_COLOR, WIDTH, HEIGHT);
+
+    pixmap = xcb_generate_id(c);
+
+    result = xcb_create_pixmap_checked(c, 24, pixmap, window,
+                                       WIDTH, HEIGHT);
+
+    check_request("create_pixmap", result);
+
+    cairo_surface_t *pixmap_surface = cairo_xcb_surface_create(c, pixmap, visualtype, WIDTH, HEIGHT);
 
     /* get the window onscreen and rendered */
     result = xcb_map_window_checked(c, window);
@@ -178,8 +188,17 @@ void draw_cart(double x, double theta) {
                     CART_WIDTH, CART_HEIGHT);
     cairo_fill(cas);
 
-    cairo_paint(cws);
-    
+    xcb_present_pixmap(c,
+		       window,
+		       pixmap,
+		       0,
+		       0,
+		       0,
+		       0, 0,
+		       0, 0, 0,
+		       0,
+		       0, 0, 0, 0, NULL);
+
     /* push the cart drawing out */
     assert(cairo_status(cas) == 0);
     (void) xcb_flush(c);

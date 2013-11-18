@@ -6,8 +6,8 @@
 # Makefile for invpend
 
 CC = gcc -std=c99 -Wall
-CFLAGS = -O4 `pkg-config --cflags xcb-util xcb`
-LIBS = -lcairo `pkg-config --libs xcb-util xcb` -lm
+CFLAGS = -O4 `pkg-config --cflags xcb-util xcb-present xcb`
+LIBS = -lcairo `pkg-config --libs xcb-util xcb-present xcb` -lm
 
 all: invpend xinvpend
 
