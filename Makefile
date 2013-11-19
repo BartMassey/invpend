@@ -6,16 +6,19 @@
 # Makefile for invpend
 
 CC = gcc -std=c99 -Wall
-CFLAGS = -O4 `pkg-config --cflags xcb-util xcb`
-LIBS = -lcairo `pkg-config --libs xcb-util xcb` -lm
-
-all: invpend xinvpend
+CFLAGS = -O4
+XCFLAGS = `pkg-config --cflags cairo xcb-util xcb`
+LIBS = -lm
+XLIBS = `pkg-config --libs cairo xcb-util xcb`
 
 invpend: invpend.o
 	$(CC) $(CFLAGS) -o invpend invpend.o $(LIBS)
 
 xinvpend: xinvpend.o graphics.o
-	$(CC) $(CFLAGS) -o xinvpend xinvpend.o graphics.o $(LIBS)
+	$(CC) $(CFLAGS) -o xinvpend xinvpend.o graphics.o $(XLIBS) $(LIBS)
 
 xinvpend.o: invpend.c
-	$(CC) $(CFLAGS) -DX -o xinvpend.o -c invpend.c
+	$(CC) $(CFLAGS) $(XCFLAGS) -DX -o xinvpend.o -c invpend.c
+
+clean:
+	-rm -f invpend.o xinvpend.o graphics.o invpend xinvpend
