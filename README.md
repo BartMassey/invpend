@@ -18,8 +18,18 @@ replacement of a single cart position in the genome.
 
 There are a few arguments that can be discovered by reading
 the code. The code also contains some hard-coded constants.
+
 Some scripts are available for running the program and
 plotting stats with [gnuplot](http://www.gnuplot.info/).
+
+* Use `try.sh` with a given population and number of
+  generations to get files showing behavior over time.
+  This script requires `/usr/bin/time`, available from the
+  `time` package in Debian.
+
+* Use `show.sh` to plot a graph of performance over
+  generations. This script requires `gnuplot`, available in
+  Debian.
 
 This program is licensed under the "MIT License". Please see
 the file `COPYING` in this distribution for license terms.
