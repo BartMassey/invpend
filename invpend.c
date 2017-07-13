@@ -13,6 +13,7 @@
 #include <string.h>
 #define __USE_BSD
 #include <unistd.h>
+#define __USE_XOPEN
 #include <math.h>
 
 #ifdef X
