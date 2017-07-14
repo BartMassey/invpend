@@ -31,5 +31,10 @@ plotting stats with [gnuplot](http://www.gnuplot.info/).
   generations. This script requires `gnuplot`, available in
   Debian.
 
+There is also an X version that displays some graphics. It
+requires `pkg-config`, `libcairo-dev` and
+`libxcb-util0-dev`. Say `make xinvpend`. I don't remember
+how it works.
+
 This program is licensed under the "MIT License". Please see
 the file `COPYING` in this distribution for license terms.

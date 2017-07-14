@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define __USE_BSD
+#define __USE_XOPEN
 #include <math.h>
 
 #include <cairo/cairo.h>
